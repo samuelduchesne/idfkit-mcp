@@ -41,7 +41,9 @@ def register(mcp: FastMCP) -> None:
                 epw_path = state.weather_file
 
             if epw_path is None and not design_day:
-                return {"error": "No weather file specified. Provide weather_file or use download_weather_file first, or set design_day=True."}
+                return {
+                    "error": "No weather file specified. Provide weather_file or use download_weather_file first, or set design_day=True."
+                }
 
             kwargs: dict[str, Any] = {"design_day": design_day, "annual": annual}
             if epw_path is not None:
@@ -129,7 +131,9 @@ def register(mcp: FastMCP) -> None:
 
             variables = result.variables
             if variables is None:
-                return {"error": "No output variable index available. The simulation may not have produced .rdd/.mdd files."}
+                return {
+                    "error": "No output variable index available. The simulation may not have produced .rdd/.mdd files."
+                }
 
             from idfkit.simulation.parsers.rdd import OutputVariable
 

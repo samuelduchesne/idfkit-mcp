@@ -7,7 +7,7 @@ import tempfile
 from idfkit_mcp.state import ServerState, get_state
 
 
-def _tool(name: str):  # noqa: ANN202
+def _tool(name: str):
     from idfkit_mcp.server import mcp
 
     return mcp._tool_manager._tools[name]
@@ -79,15 +79,11 @@ class TestBatchAddObjects:
 class TestUpdateObject:
     def test_update_fields(self, state_with_model: ServerState) -> None:
         _tool("add_object").fn(object_type="Zone", name="TestZone")
-        result = _tool("update_object").fn(
-            object_type="Zone", name="TestZone", fields={"x_origin": 5.0}
-        )
+        result = _tool("update_object").fn(object_type="Zone", name="TestZone", fields={"x_origin": 5.0})
         assert "x_origin" in result
 
     def test_update_nonexistent(self, state_with_model: ServerState) -> None:
-        result = _tool("update_object").fn(
-            object_type="Zone", name="Missing", fields={"x_origin": 5.0}
-        )
+        result = _tool("update_object").fn(object_type="Zone", name="Missing", fields={"x_origin": 5.0})
         assert "error" in result
 
 
@@ -108,18 +104,14 @@ class TestRemoveObject:
 
 class TestRenameObject:
     def test_rename(self, state_with_zones: ServerState) -> None:
-        result = _tool("rename_object").fn(
-            object_type="Zone", old_name="Office", new_name="MainOffice"
-        )
+        result = _tool("rename_object").fn(object_type="Zone", old_name="Office", new_name="MainOffice")
         assert result["status"] == "renamed"
         assert result["references_updated"] >= 1
 
 
 class TestDuplicateObject:
     def test_duplicate(self, state_with_zones: ServerState) -> None:
-        result = _tool("duplicate_object").fn(
-            object_type="Zone", name="Office", new_name="OfficeClone"
-        )
+        result = _tool("duplicate_object").fn(object_type="Zone", name="Office", new_name="OfficeClone")
         assert result["name"] == "OfficeClone"
 
 

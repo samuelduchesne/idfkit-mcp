@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from idfkit_mcp.tools.schema import _parse_version, register
 from mcp.server.fastmcp import FastMCP
+
+from idfkit_mcp.tools.schema import _parse_version, register
 
 
 def _make_server() -> FastMCP:

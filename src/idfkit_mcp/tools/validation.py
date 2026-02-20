@@ -15,9 +15,7 @@ def register(mcp: FastMCP) -> None:
     """Register validation tools on the MCP server."""
 
     @mcp.tool()
-    def validate_model(
-        object_types: list[str] | None = None, check_references: bool = True
-    ) -> dict[str, Any]:
+    def validate_model(object_types: list[str] | None = None, check_references: bool = True) -> dict[str, Any]:
         """Validate the loaded model against the EnergyPlus schema.
 
         Args:

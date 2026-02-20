@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 
-def _tool(name: str):  # noqa: ANN202
+def _tool(name: str):
     from idfkit_mcp.server import mcp
 
     return mcp._tool_manager._tools[name]
@@ -42,9 +42,7 @@ class TestCreateEditValidateSave:
         assert zones["total"] == 3
 
         # 6. Update a zone
-        updated = _tool("update_object").fn(
-            object_type="Zone", name="Office", fields={"x_origin": 10.0}
-        )
+        updated = _tool("update_object").fn(object_type="Zone", name="Office", fields={"x_origin": 10.0})
         assert "x_origin" in updated
 
         # 7. Search for objects
@@ -74,15 +72,11 @@ class TestCreateEditValidateSave:
         _tool("add_object").fn(object_type="Zone", name="ZoneA")
 
         # Duplicate
-        dup = _tool("duplicate_object").fn(
-            object_type="Zone", name="ZoneA", new_name="ZoneB"
-        )
+        dup = _tool("duplicate_object").fn(object_type="Zone", name="ZoneA", new_name="ZoneB")
         assert dup["name"] == "ZoneB"
 
         # Rename
-        renamed = _tool("rename_object").fn(
-            object_type="Zone", old_name="ZoneA", new_name="ZoneC"
-        )
+        renamed = _tool("rename_object").fn(object_type="Zone", old_name="ZoneA", new_name="ZoneC")
         assert renamed["status"] == "renamed"
 
         # Verify

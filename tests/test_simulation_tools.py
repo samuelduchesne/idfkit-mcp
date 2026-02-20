@@ -5,7 +5,7 @@ from __future__ import annotations
 from idfkit_mcp.state import ServerState
 
 
-def _tool(name: str):  # noqa: ANN202
+def _tool(name: str):
     from idfkit_mcp.server import mcp
 
     return mcp._tool_manager._tools[name]
