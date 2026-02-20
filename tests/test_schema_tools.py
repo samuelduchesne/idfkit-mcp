@@ -23,7 +23,7 @@ class TestParseVersion:
     def test_invalid(self) -> None:
         import pytest
 
-        with pytest.raises(ValueError, match="X.Y.Z"):
+        with pytest.raises(ValueError, match=r"X\.Y\.Z"):
             _parse_version("24.1")
 
 

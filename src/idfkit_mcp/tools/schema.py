@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from functools import wraps
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
@@ -22,125 +24,134 @@ def _parse_version(version: str | None) -> tuple[int, int, int] | None:
     return (int(parts[0]), int(parts[1]), int(parts[2]))
 
 
+def _safe_tool(func: Callable[..., dict[str, Any]]) -> Callable[..., dict[str, Any]]:
+    """Convert exceptions into MCP-friendly error dicts."""
+
+    @wraps(func)
+    def wrapper(*args: Any, **kwargs: Any) -> dict[str, Any]:
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            return format_error(e)
+
+    return wrapper
+
+
 def register(mcp: FastMCP) -> None:
     """Register schema tools on the MCP server."""
+    mcp.tool()(list_object_types)
+    mcp.tool()(describe_object_type)
+    mcp.tool()(search_schema)
+    mcp.tool()(get_available_references)
 
-    @mcp.tool()
-    def list_object_types(group: str | None = None, version: str | None = None) -> dict[str, Any]:
-        """List all EnergyPlus object types, optionally filtered by group.
 
-        Args:
-            group: Filter to a specific IDD group (e.g. "Thermal Zones and Surfaces").
-            version: EnergyPlus version as "X.Y.Z" (default: latest or loaded model version).
+@_safe_tool
+def list_object_types(group: str | None = None, version: str | None = None) -> dict[str, Any]:
+    """List all EnergyPlus object types, optionally filtered by group.
 
-        Returns:
-            Groups with their object type names.
-        """
-        try:
-            state = get_state()
-            schema = state.get_or_load_schema(_parse_version(version))
+    Args:
+        group: Filter to a specific IDD group (e.g. "Thermal Zones and Surfaces").
+        version: EnergyPlus version as "X.Y.Z" (default: latest or loaded model version).
 
-            groups: dict[str, list[str]] = {}
-            for obj_type in schema.object_types:
-                g = schema.get_group(obj_type) or "Ungrouped"
-                if group is not None and g.lower() != group.lower():
-                    continue
-                groups.setdefault(g, []).append(obj_type)
+    Returns:
+        Groups with their object type names.
+    """
+    state = get_state()
+    schema = state.get_or_load_schema(_parse_version(version))
 
-            return {
-                "total_types": sum(len(v) for v in groups.values()),
-                "groups": {g: {"count": len(types), "types": types} for g, types in sorted(groups.items())},
-            }
-        except Exception as e:
-            return format_error(e)
+    groups: dict[str, list[str]] = {}
+    for obj_type in schema.object_types:
+        g = schema.get_group(obj_type) or "Ungrouped"
+        if group is not None and g.lower() != group.lower():
+            continue
+        groups.setdefault(g, []).append(obj_type)
 
-    @mcp.tool()
-    def describe_object_type(object_type: str, version: str | None = None) -> dict[str, Any]:
-        """Get full field schema for an EnergyPlus object type.
+    return {
+        "total_types": sum(len(v) for v in groups.values()),
+        "groups": {g: {"count": len(types), "types": types} for g, types in sorted(groups.items())},
+    }
 
-        Returns field names, types, constraints, defaults, references, and memo.
-        Call this before creating or editing objects to know valid fields.
 
-        Args:
-            object_type: The object type name (e.g. "Zone", "Material").
-            version: EnergyPlus version as "X.Y.Z" (default: latest or loaded model version).
-        """
-        try:
-            from idfkit.introspection import describe_object_type as _describe
+@_safe_tool
+def describe_object_type(object_type: str, version: str | None = None) -> dict[str, Any]:
+    """Get full field schema for an EnergyPlus object type.
 
-            state = get_state()
-            schema = state.get_or_load_schema(_parse_version(version))
-            desc = _describe(schema, object_type)
-            return serialize_object_description(desc)
-        except Exception as e:
-            return format_error(e)
+    Returns field names, types, constraints, defaults, references, and memo.
+    Call this before creating or editing objects to know valid fields.
 
-    @mcp.tool()
-    def search_schema(query: str, version: str | None = None) -> dict[str, Any]:
-        """Search for EnergyPlus object types by name or description.
+    Args:
+        object_type: The object type name (e.g. "Zone", "Material").
+        version: EnergyPlus version as "X.Y.Z" (default: latest or loaded model version).
+    """
+    from idfkit.introspection import describe_object_type as _describe
 
-        Args:
-            query: Search string (case-insensitive substring match).
-            version: EnergyPlus version as "X.Y.Z" (default: latest or loaded model version).
-        """
-        try:
-            state = get_state()
-            schema = state.get_or_load_schema(_parse_version(version))
-            query_lower = query.lower()
+    state = get_state()
+    schema = state.get_or_load_schema(_parse_version(version))
+    desc = _describe(schema, object_type)
+    return serialize_object_description(desc)
 
-            matches: list[dict[str, Any]] = []
-            for obj_type in schema.object_types:
-                memo = schema.get_object_memo(obj_type) or ""
-                if query_lower in obj_type.lower() or query_lower in memo.lower():
-                    group = schema.get_group(obj_type) or "Ungrouped"
-                    matches.append({
-                        "object_type": obj_type,
-                        "group": group,
-                        "memo": memo[:200] if memo else None,
-                    })
 
-            return {"query": query, "count": len(matches), "matches": matches}
-        except Exception as e:
-            return format_error(e)
+@_safe_tool
+def search_schema(query: str, version: str | None = None) -> dict[str, Any]:
+    """Search for EnergyPlus object types by name or description.
 
-    @mcp.tool()
-    def get_available_references(object_type: str, field_name: str) -> dict[str, Any]:
-        """Get valid object names for a reference field from the loaded model.
+    Args:
+        query: Search string (case-insensitive substring match).
+        version: EnergyPlus version as "X.Y.Z" (default: latest or loaded model version).
+    """
+    state = get_state()
+    schema = state.get_or_load_schema(_parse_version(version))
+    query_lower = query.lower()
 
-        Use this to find valid values when setting reference fields like zone_name,
-        construction_name, etc.
+    matches: list[dict[str, Any]] = []
+    for obj_type in schema.object_types:
+        memo = schema.get_object_memo(obj_type) or ""
+        if query_lower in obj_type.lower() or query_lower in memo.lower():
+            group = schema.get_group(obj_type) or "Ungrouped"
+            matches.append({
+                "object_type": obj_type,
+                "group": group,
+                "memo": memo[:200] if memo else None,
+            })
 
-        Args:
-            object_type: The object type containing the field.
-            field_name: The field name to check.
-        """
-        try:
-            state = get_state()
-            doc = state.require_model()
-            schema = state.require_schema()
+    return {"query": query, "count": len(matches), "matches": matches}
 
-            object_lists = schema.get_field_object_list(object_type, field_name)
-            if not object_lists:
-                return {"error": f"Field '{field_name}' on '{object_type}' is not a reference field."}
 
-            available: dict[str, list[str]] = {}
-            for list_name in object_lists:
-                provider_types = schema.get_types_providing_reference(list_name)
-                names: list[str] = []
-                for ptype in provider_types:
-                    if ptype in doc:
-                        for obj in doc[ptype]:
-                            if obj.name:
-                                names.append(obj.name)
-                if names:
-                    available[list_name] = sorted(names)
+@_safe_tool
+def get_available_references(object_type: str, field_name: str) -> dict[str, Any]:
+    """Get valid object names for a reference field from the loaded model.
 
-            all_names = sorted({n for names in available.values() for n in names})
-            return {
-                "object_type": object_type,
-                "field_name": field_name,
-                "available_names": all_names,
-                "by_reference_list": available,
-            }
-        except Exception as e:
-            return format_error(e)
+    Use this to find valid values when setting reference fields like zone_name,
+    construction_name, etc.
+
+    Args:
+        object_type: The object type containing the field.
+        field_name: The field name to check.
+    """
+    state = get_state()
+    doc = state.require_model()
+    schema = state.require_schema()
+
+    object_lists = schema.get_field_object_list(object_type, field_name)
+    if not object_lists:
+        return {"error": f"Field '{field_name}' on '{object_type}' is not a reference field."}
+
+    available: dict[str, list[str]] = {}
+    for list_name in object_lists:
+        provider_types = schema.get_types_providing_reference(list_name)
+        names: list[str] = []
+        for ptype in provider_types:
+            if ptype in doc:
+                for obj in doc[ptype]:
+                    if obj.name:
+                        names.append(obj.name)
+        if names:
+            available[list_name] = sorted(names)
+
+    all_names = sorted({n for names in available.values() for n in names})
+    return {
+        "object_type": object_type,
+        "field_name": field_name,
+        "available_names": all_names,
+        "by_reference_list": available,
+    }
