@@ -1,11 +1,15 @@
 [project]
 name = "idfkit-mcp"
 version = "0.0.1"
-description = "An MCP server based on idfkit"
+description = "An MCP server exposing EnergyPlus model authoring, validation, and simulation via idfkit"
 authors = [{ name = "Samuel Letellier-Duchesne", email = "samuelduchesne@me.com" }]
 readme = "README.md"
-keywords = ['python']
+keywords = ["energyplus", "mcp", "idfkit", "building-energy"]
 requires-python = ">=3.10,<4.0"
+dependencies = [
+    "idfkit>=0.1.0",
+    "mcp>=1.2.0",
+]
 classifiers = [
     "Intended Audience :: Developers",
     "Programming Language :: Python",
@@ -16,6 +20,9 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
+
+[project.scripts]
+idfkit-mcp = "idfkit_mcp.server:main"
 
 [project.urls]
 Homepage = "https://samuelduchesne.github.io/idfkit-mcp/"
@@ -45,6 +52,10 @@ packages = ["src/idfkit_mcp"]
 [tool.pyright]
 pythonVersion = "3.10"
 typeCheckingMode = "strict"
+# Functions decorated with @mcp.tool() inside register() appear unused
+reportUnusedFunction = "warning"
+# Tests access private tool internals for testing
+include = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -106,4 +117,3 @@ skip_empty = true
 [tool.coverage.run]
 branch = true
 source = ["src"]
-
