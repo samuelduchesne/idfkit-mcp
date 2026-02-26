@@ -45,12 +45,16 @@ def search_weather_stations(
 
     Provide either a text query or latitude/longitude for spatial search.
 
+    IMPORTANT: Keep query short (just the city name). Use country/state params
+    to disambiguate. For example, use query="Boston", country="USA", state="MA"
+    instead of query="Boston MA USA".
+
     Args:
-        query: Search text (city, airport code, etc.).
+        query: Short search text — just the city or airport name (e.g. "Boston", "O'Hare").
         latitude: Latitude for nearest-station search.
         longitude: Longitude for nearest-station search.
         country: Filter by country code (e.g. "USA").
-        state: Filter by state/province code (e.g. "MA").
+        state: Filter by state/province code (e.g. "MA", "IL").
         limit: Maximum results (default 10).
     """
     from idfkit.weather import StationIndex
@@ -114,9 +118,13 @@ def download_weather_file(
 
     The downloaded file path is stored for reuse with run_simulation.
 
+    IMPORTANT: Keep query short (just the city name). Use country/state params
+    to disambiguate. For example, use query="Boston", country="USA", state="MA"
+    instead of query="Boston MA USA TMYx".
+
     Args:
         wmo: WMO station number to download directly.
-        query: Search text to find and download the best match.
+        query: Short search text — just the city or airport name (e.g. "Boston").
         country: Filter by country code (e.g. "USA").
         state: Filter by state/province code (e.g. "MA").
     """
