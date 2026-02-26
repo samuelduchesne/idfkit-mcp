@@ -95,7 +95,11 @@ def search_weather_stations(
 
 
 @_safe_tool
-def download_weather_file(wmo: str | None = None, query: str | None = None) -> dict[str, Any]:
+def download_weather_file(
+    wmo: str | None = None,
+    query: str | None = None,
+    country: str | None = None,
+) -> dict[str, Any]:
     """Download an EPW weather file for simulation.
 
     The downloaded file path is stored for reuse with run_simulation.
@@ -103,13 +107,14 @@ def download_weather_file(wmo: str | None = None, query: str | None = None) -> d
     Args:
         wmo: WMO station number to download directly.
         query: Search text to find and download the best match.
+        country: Filter by country code (e.g. "USA").
     """
     from idfkit.weather import StationIndex, WeatherDownloader
 
     index = StationIndex.load()
 
     if query is not None:
-        results = index.search(query, limit=1)
+        results = index.search(query, limit=1, country=country)
         if not results:
             return {"error": f"No weather stations found for query '{query}'."}
         station = results[0].station
