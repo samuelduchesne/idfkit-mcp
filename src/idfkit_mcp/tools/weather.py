@@ -38,6 +38,7 @@ def search_weather_stations(
     latitude: float | None = None,
     longitude: float | None = None,
     country: str | None = None,
+    state: str | None = None,
     limit: int = 10,
 ) -> dict[str, Any]:
     """Search for weather stations by name/location or coordinates.
@@ -49,6 +50,7 @@ def search_weather_stations(
         latitude: Latitude for nearest-station search.
         longitude: Longitude for nearest-station search.
         country: Filter by country code (e.g. "USA").
+        state: Filter by state/province code (e.g. "MA").
         limit: Maximum results (default 10).
     """
     from idfkit.weather import StationIndex
@@ -59,7 +61,7 @@ def search_weather_stations(
         spatial_results = index.nearest(latitude, longitude, limit=limit)
         spatial_stations: list[dict[str, Any]] = []
         for r in spatial_results:
-            if country and r.station.country.upper() != country.upper():
+            if not _matches_filters(r.station, country, state):
                 continue
             spatial_stations.append({
                 **serialize_station(r.station),
@@ -75,7 +77,7 @@ def search_weather_stations(
         search_results = index.search(query, limit=limit * 3)
         text_stations: list[dict[str, Any]] = []
         for r in search_results:
-            if country and r.station.country.upper() != country.upper():
+            if not _matches_filters(r.station, country, state):
                 continue
             text_stations.append({
                 **serialize_station(r.station),
@@ -94,11 +96,19 @@ def search_weather_stations(
     return {"error": "Provide either 'query' for text search or 'latitude'/'longitude' for spatial search."}
 
 
+def _matches_filters(station: Any, country: str | None, state: str | None) -> bool:
+    """Check if a station matches the given country and state filters."""
+    if country and station.country.upper() != country.upper():
+        return False
+    return not (state and station.state.upper() != state.upper())
+
+
 @_safe_tool
 def download_weather_file(
     wmo: str | None = None,
     query: str | None = None,
     country: str | None = None,
+    state: str | None = None,
 ) -> dict[str, Any]:
     """Download an EPW weather file for simulation.
 
@@ -108,16 +118,17 @@ def download_weather_file(
         wmo: WMO station number to download directly.
         query: Search text to find and download the best match.
         country: Filter by country code (e.g. "USA").
+        state: Filter by state/province code (e.g. "MA").
     """
     from idfkit.weather import StationIndex, WeatherDownloader
 
     index = StationIndex.load()
 
     if query is not None:
-        results = index.search(query, limit=10)
+        results = index.search(query, limit=30)
         station = None
         for r in results:
-            if country and r.station.country.upper() != country.upper():
+            if not _matches_filters(r.station, country, state):
                 continue
             station = r.station
             break
@@ -138,8 +149,8 @@ def download_weather_file(
     downloader = WeatherDownloader()
     files = downloader.download(station)
 
-    state = get_state()
-    state.weather_file = files.epw
+    server_state = get_state()
+    server_state.weather_file = files.epw
 
     return {
         "status": "downloaded",
