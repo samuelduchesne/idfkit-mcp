@@ -29,15 +29,13 @@ class TestRunSimulation:
         assert "error" in result
         assert "weather" in result["error"].lower() or "No weather" in result["error"]
 
-    def test_auto_pins_energyplus_version(self, state_with_model: ServerState) -> None:
-        """run_simulation passes doc.version to find_energyplus when not specified."""
-        doc = state_with_model.require_model()
+    def test_defaults_to_latest_energyplus(self, state_with_model: ServerState) -> None:
+        """run_simulation lets find_energyplus pick the best version when not specified."""
         with patch("idfkit.simulation.config.find_energyplus") as mock_find:
-            # Make find_energyplus raise so we can inspect the call
             mock_find.side_effect = RuntimeError("test stop")
             result = _tool("run_simulation").fn(design_day=True)
             assert "error" in result
-            mock_find.assert_called_once_with(path=None, version=doc.version)
+            mock_find.assert_called_once_with(path=None, version=None)
 
 
 class TestGetResultsSummary:

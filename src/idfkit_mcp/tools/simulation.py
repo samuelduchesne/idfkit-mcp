@@ -72,10 +72,7 @@ def run_simulation(
             "error": "No weather file specified. Provide weather_file or use download_weather_file first, or set design_day=True."
         }
 
-    ep_version: tuple[int, int, int] | str | None = energyplus_version
-    if ep_version is None:
-        ep_version = doc.version
-    config = find_energyplus(path=energyplus_dir, version=ep_version)
+    config = find_energyplus(path=energyplus_dir, version=energyplus_version)
 
     output_dir = Path(output_directory) if output_directory is not None else None
     weather = epw_path if epw_path is not None else ""
