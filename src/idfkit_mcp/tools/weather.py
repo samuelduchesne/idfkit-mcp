@@ -114,10 +114,15 @@ def download_weather_file(
     index = StationIndex.load()
 
     if query is not None:
-        results = index.search(query, limit=1, country=country)
-        if not results:
+        results = index.search(query, limit=10)
+        station = None
+        for r in results:
+            if country and r.station.country.upper() != country.upper():
+                continue
+            station = r.station
+            break
+        if station is None:
             return {"error": f"No weather stations found for query '{query}'."}
-        station = results[0].station
     elif wmo is not None:
         results = index.search(wmo, limit=10)
         station = None
