@@ -7,7 +7,7 @@
 
 An MCP server based on idfkit
 
-**[Documentation](https://idfkit.github.io/idfkit-mcp/)** | **[GitHub](https://github.com/idfkit/idfkit-mcp/)**
+**[Documentation](https://mcp.idfkit.com/docs/)** | **[GitHub](https://github.com/idfkit/idfkit-mcp/)**
 
 ## Installation
 
@@ -50,7 +50,7 @@ Add `idfkit-mcp` to your MCP client. Example for Claude Desktop (`~/Library/Appl
 }
 ```
 
-See [MCP Client Setup](https://idfkit.github.io/idfkit-mcp/getting-started/client-setup/) for all supported clients (Claude Desktop, Cursor, VS Code, Claude Code, Windsurf, ChatGPT, Codex, JetBrains, Cline, Continue, and Zed).
+See [MCP Client Setup](https://mcp.idfkit.com/docs/getting-started/client-setup/) for all supported clients (Claude Desktop, Cursor, VS Code, Claude Code, Windsurf, ChatGPT, Codex, JetBrains, Cline, Continue, and Zed).
 
 ## Development
 
