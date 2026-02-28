@@ -35,6 +35,23 @@ Run as Streamable HTTP MCP server:
 idfkit-mcp --transport streamable-http --host 127.0.0.1 --port 8000
 ```
 
+## Quick MCP Setup
+
+Add `idfkit-mcp` to your MCP client. Example for Claude Desktop (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "idfkit": {
+      "command": "uvx",
+      "args": ["--from", "idfkit-mcp", "idfkit-mcp"]
+    }
+  }
+}
+```
+
+See [MCP Client Setup](https://samuelduchesne.github.io/idfkit-mcp/getting-started/client-setup/) for all supported clients (Claude Desktop, Cursor, VS Code, Claude Code, Windsurf, ChatGPT, Codex, JetBrains, Cline, Continue, and Zed).
+
 ## Development
 
 This project uses [uv](https://docs.astral.sh/uv/) for dependency management and
