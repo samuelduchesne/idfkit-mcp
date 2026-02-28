@@ -25,9 +25,9 @@ classifiers = [
 idfkit-mcp = "idfkit_mcp.server:main"
 
 [project.urls]
-Homepage = "https://samuelduchesne.github.io/idfkit-mcp/"
-Repository = "https://github.com/samuelduchesne/idfkit-mcp"
-Documentation = "https://samuelduchesne.github.io/idfkit-mcp/"
+Homepage = "https://idfkit.github.io/idfkit-mcp/"
+Repository = "https://github.com/idfkit/idfkit-mcp"
+Documentation = "https://idfkit.github.io/idfkit-mcp/"
 
 [dependency-groups]
 dev = [
